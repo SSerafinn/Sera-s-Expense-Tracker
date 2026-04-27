@@ -1,257 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-    <title>Seraf's Personal Tracker</title>
-  </head>
-  <body>
-    <div class="admin-layout">
-      <!-- Left Sidebar -->
-      <aside class="sidebar">
-        <div class="logo">
-          <h1>Seraf's Personal Tracker.</h1>
-        </div>
-        <nav class="sidebar-nav">
-          <button id="tab-dashboard" class="tab-btn active">Dashboard</button>
-          <button id="tab-insights" class="tab-btn">Insights</button>
-          <button id="tab-logs" class="tab-btn">Audit Logs</button>
-        </nav>
-      </aside>
 
-      <!-- Right Main Area -->
-      <div class="main-content">
-        <header class="top-bar">
-          <div class="net-worth-header">
-            <span>Net Worth: </span><strong id="global-net-worth">₱0.00</strong>
-          </div>
-          <div class="month-selector">
-            <input type="month" id="month-picker" class="month-input">
-          </div>
-        </header>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+    rel="stylesheet">
+  <title>Seraf's Personal Tracker</title>
+</head>
 
-        <!-- Dashboard View -->
-        <main class="view" id="view-dashboard">
-          <!-- Top Stats Row -->
-          <section class="stats-row">
-            <div class="stat-card balance">
-              <p class="stat-label">Safe to Spend</p>
-              <h2 class="stat-value" id="safe-to-spend">₱0.00</h2>
-              <p class="stat-sublabel" id="balance-sublabel">Net Worth - Planned Expenses</p>
-            </div>
-            <div class="stat-card minimal">
-              <p class="stat-label">Total Income</p>
-              <h3 class="stat-value highlight" id="total-income">₱0.00</h3>
-              <button id="add-income-btn" class="text-button">+ Add Source</button>
-            </div>
-            <div class="stat-card minimal">
-              <p class="stat-label">Total Actual Spent</p>
-              <h3 class="stat-value danger" id="total-expenses">₱0.00</h3>
-            </div>
-          </section>
-
-          <!-- 3-Column Main Grid -->
-          <div class="dashboard-grid-horizontal">
-            
-            <!-- Col 1: Forms -->
-            <div class="grid-col actions-col">
-              <div class="card glass">
-                <h3>Track Expense</h3>
-                <form id="expense-form">
-                  <div class="form-group">
-                    <label for="amount">Amount</label>
-                    <input type="number" id="amount" placeholder="0.00" step="0.01" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="category">Category</label>
-                    <select id="category" required>
-                      <option value="" disabled selected>Select category</option>
-                      <option value="housing">Housing</option>
-                      <option value="food">Food</option>
-                      <option value="utilities">Utilities</option>
-                      <option value="transport">Transport</option>
-                      <option value="entertainment">Entertainment</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label for="account-id">Deduct From Account</label>
-                    <select id="account-id">
-                      <option value="">(None)</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label for="description">Description (optional)</label>
-                    <input type="text" id="description" placeholder="What was this for?">
-                  </div>
-                  <button type="submit" class="primary-btn">Add Expense</button>
-                </form>
-              </div>
-
-              <!-- Planned Expenses Form -->
-              <div class="card glass mt-1">
-                <h3>Planned Expenses</h3>
-                <form id="recurring-form">
-                  <div class="form-group">
-                    <label>Bill Name</label>
-                    <input type="text" id="rec-name" placeholder="e.g. Rent" required>
-                  </div>
-                  <div class="form-group">
-                    <label>Expected Amount</label>
-                    <input type="number" id="rec-amount" placeholder="0.00" step="0.01" required>
-                  </div>
-                  <button type="submit" class="secondary-btn">Add Planned</button>
-                </form>
-              </div>
-            </div>
-
-            <!-- Col 2: Ledgers -->
-            <div class="grid-col ledgers-col">
-              <div class="card blank">
-                <h3>Accounts Ledger
-                  <button id="add-account-btn" class="icon-btn" title="Add Account">+</button>
-                  <button id="transfer-btn" class="icon-btn" title="Transfer Funds" style="margin-right: 0.5rem; background: var(--color-accent-light); color: white;">⇄</button>
-                </h3>
-                <div id="accounts-list" class="mini-list"></div>
-              </div>
-              
-              <div class="card blank mt-1">
-                <h3>Income Sources</h3>
-                <div id="income-list" class="mini-list"></div>
-              </div>
-              
-              <div class="card blank mt-1">
-                <h3>Planned List</h3>
-                <div id="recurring-list" class="mini-list"></div>
-              </div>
-            </div>
-
-            <!-- Col 3: Transactions -->
-            <div class="grid-col transactions-col">
-              <div class="card glass feed-card">
-                <h3>Recent Transactions</h3>
-                <div class="transactions-list" id="transaction-list"></div>
-              </div>
-            </div>
-            
-          </div>
-        </main>
-
-        <!-- Insights View -->
-        <main class="view" id="view-insights" style="display: none;">
-          <div class="insights-dashboard">
-            <div class="card glass mb-2">
-              <h3>Income vs Expense</h3>
-              <div class="chart-container" style="height: 350px;">
-                <canvas id="insights-bar-chart"></canvas>
-              </div>
-              <p id="savings-rate-metric" style="text-align: center; font-size: 1.25rem; font-family: var(--font-serif); margin-top: 1rem; color: var(--color-accent);"></p>
-            </div>
-            <div class="card blank">
-              <h3>Top Categories Breakdown</h3>
-              <div class="chart-container">
-                <canvas id="expense-chart"></canvas>
-              </div>
-            </div>
-          </div>
-        </main>
-
-        <!-- Logs View -->
-        <main class="view" id="view-logs" style="display: none;">
-          <div class="card glass feed-card" style="min-height: calc(100vh - 150px); max-height: none;">
-            <div style="display:flex; justify-content: space-between; align-items:center; border-bottom: 1px solid var(--color-bg); padding-bottom: 1rem; margin-bottom: 1rem;">
-              <h3 style="border: none; padding: 0; margin: 0;">System Audit Logs</h3>
-              <select id="logs-limit" style="width: auto; padding: 0.5rem;">
-                <option value="10">Last 10 Logs</option>
-                <option value="25">Last 25 Logs</option>
-                <option value="50" selected>Last 50 Logs</option>
-                <option value="100">Last 100 Logs</option>
-              </select>
-            </div>
-            <div class="logs-container" id="logs-container" style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <!-- Logs rendered here -->
-            </div>
-          </div>
-        </main>
+<body>
+  <div class="admin-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <h1>Seraf's Personal Tracker.</h1>
       </div>
+      <nav class="sidebar-nav">
+        <button id="tab-dashboard" class="tab-btn active">Dashboard</button>
+        <button id="tab-insights" class="tab-btn">Insights</button>
+        <button id="tab-logs" class="tab-btn">Audit Logs</button>
+      </nav>
+    </aside>
+
+    <!-- Right Main Area -->
+    <div class="main-content">
+      <header class="top-bar">
+        <div class="net-worth-header">
+          <span>Net Worth: </span><strong id="global-net-worth">₱0.00</strong>
+        </div>
+        <div class="month-selector">
+          <input type="month" id="month-picker" class="month-input">
+        </div>
+      </header>
+
+      <!-- Dashboard View -->
+      <main class="view" id="view-dashboard">
+        <!-- Top Stats Row -->
+        <section class="stats-row">
+          <div class="stat-card balance">
+            <p class="stat-label">Safe to Spend</p>
+            <h2 class="stat-value" id="safe-to-spend">₱0.00</h2>
+            <p class="stat-sublabel" id="balance-sublabel">Net Worth - Planned Expenses</p>
+          </div>
+          <div class="stat-card minimal">
+            <p class="stat-label">Total Income</p>
+            <h3 class="stat-value highlight" id="total-income">₱0.00</h3>
+            <button id="add-income-btn" class="text-button">+ Add Source</button>
+          </div>
+          <div class="stat-card minimal">
+            <p class="stat-label">Total Actual Spent</p>
+            <h3 class="stat-value danger" id="total-expenses">₱0.00</h3>
+          </div>
+        </section>
+
+        <!-- 3-Column Main Grid -->
+        <div class="dashboard-grid-horizontal">
+
+          <!-- Col 1: Forms -->
+          <div class="grid-col actions-col">
+            <div class="card glass">
+              <h3>Track Expense</h3>
+              <form id="expense-form">
+                <div class="form-group">
+                  <label for="amount">Amount</label>
+                  <input type="number" id="amount" placeholder="0.00" step="0.01" required>
+                </div>
+                <div class="form-group">
+                  <label for="category">Category</label>
+                  <select id="category" required>
+                    <option value="" disabled selected>Select category</option>
+                    <option value="housing">Housing</option>
+                    <option value="food">Food</option>
+                    <option value="utilities">Utilities</option>
+                    <option value="transport">Transport</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="account-id">Deduct From Account</label>
+                  <select id="account-id">
+                    <option value="">(None)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="description">Description (optional)</label>
+                  <input type="text" id="description" placeholder="What was this for?">
+                </div>
+                <button type="submit" class="primary-btn">Add Expense</button>
+              </form>
+            </div>
+
+            <!-- Planned Expenses Form -->
+            <div class="card glass mt-1">
+              <h3>Planned Expenses</h3>
+              <form id="recurring-form">
+                <div class="form-group">
+                  <label>Bill Name</label>
+                  <input type="text" id="rec-name" placeholder="e.g. Rent" required>
+                </div>
+                <div class="form-group">
+                  <label>Expected Amount</label>
+                  <input type="number" id="rec-amount" placeholder="0.00" step="0.01" required>
+                </div>
+                <button type="submit" class="secondary-btn">Add Planned</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Col 2: Ledgers -->
+          <div class="grid-col ledgers-col">
+            <div class="card blank">
+              <h3>Accounts Ledger
+                <button id="add-account-btn" class="icon-btn" title="Add Account">+</button>
+                <button id="transfer-btn" class="icon-btn" title="Transfer Funds"
+                  style="margin-right: 0.5rem; background: var(--color-accent-light); color: white;">⇄</button>
+              </h3>
+              <div id="accounts-list" class="mini-list"></div>
+            </div>
+
+            <div class="card blank mt-1">
+              <h3>Income Sources</h3>
+              <div id="income-list" class="mini-list"></div>
+            </div>
+
+            <div class="card blank mt-1">
+              <h3>Planned List</h3>
+              <div id="recurring-list" class="mini-list"></div>
+            </div>
+          </div>
+
+          <!-- Col 3: Transactions -->
+          <div class="grid-col transactions-col">
+            <div class="card glass feed-card">
+              <h3>Recent Transactions</h3>
+              <div class="transactions-list" id="transaction-list"></div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <!-- Insights View -->
+      <main class="view" id="view-insights" style="display: none;">
+        <div class="insights-dashboard">
+          <div class="card glass mb-2">
+            <h3>Income vs Expense</h3>
+            <div class="chart-container" style="height: 350px;">
+              <canvas id="insights-bar-chart"></canvas>
+            </div>
+            <p id="savings-rate-metric"
+              style="text-align: center; font-size: 1.25rem; font-family: var(--font-serif); margin-top: 1rem; color: var(--color-accent);">
+            </p>
+          </div>
+          <div class="card blank">
+            <h3>Top Categories Breakdown</h3>
+            <div class="chart-container">
+              <canvas id="expense-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Logs View -->
+      <main class="view" id="view-logs" style="display: none;">
+        <div class="card glass feed-card" style="min-height: calc(100vh - 150px); max-height: none;">
+          <div
+            style="display:flex; justify-content: space-between; align-items:center; border-bottom: 1px solid var(--color-bg); padding-bottom: 1rem; margin-bottom: 1rem;">
+            <h3 style="border: none; padding: 0; margin: 0;">System Audit Logs</h3>
+            <select id="logs-limit" style="width: auto; padding: 0.5rem;">
+              <option value="10">Last 10 Logs</option>
+              <option value="25">Last 25 Logs</option>
+              <option value="50" selected>Last 50 Logs</option>
+              <option value="100">Last 100 Logs</option>
+            </select>
+          </div>
+          <div class="logs-container" id="logs-container" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <!-- Logs rendered here -->
+          </div>
+        </div>
+      </main>
     </div>
+  </div>
 
-    <!-- Modals -->
-    <dialog id="income-dialog">
-      <form id="income-form" method="dialog">
-        <h3>Add Income Source</h3>
-        <div class="form-group">
-          <label>Source Name</label>
-          <input type="text" id="income-source-name" required>
-        </div>
-        <div class="form-group">
-          <label>Amount</label>
-          <input type="number" id="income-amount" step="0.01" required>
-        </div>
-        <div class="form-group">
-          <label>Deposit To Account</label>
-          <select id="income-account-id">
-            <option value="">(None)</option>
-          </select>
-        </div>
-        <div class="dialog-actions">
-          <button type="button" id="cancel-income" class="text-button">Cancel</button>
-          <button type="submit" class="primary-btn">Save</button>
-        </div>
-      </form>
-    </dialog>
+  <!-- Modals -->
+  <dialog id="income-dialog">
+    <form id="income-form" method="dialog">
+      <h3>Add Income Source</h3>
+      <div class="form-group">
+        <label>Source Name</label>
+        <input type="text" id="income-source-name" required>
+      </div>
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" id="income-amount" step="0.01" required>
+      </div>
+      <div class="form-group">
+        <label>Deposit To Account</label>
+        <select id="income-account-id">
+          <option value="">(None)</option>
+        </select>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="cancel-income" class="text-button">Cancel</button>
+        <button type="submit" class="primary-btn">Save</button>
+      </div>
+    </form>
+  </dialog>
 
-    <dialog id="account-dialog">
-      <form id="account-form" method="dialog">
-        <h3>Add Account</h3>
-        <div class="form-group">
-          <label>Account Name</label>
-          <input type="text" id="acc-name" required>
-        </div>
-        <div class="form-group">
-          <label>Type</label>
-          <select id="acc-type" required>
-            <option value="asset">Asset (Checking, Savings)</option>
-            <option value="liability">Liability (Credit Card, Loan)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Current Balance</label>
-          <input type="number" id="acc-balance" step="0.01" required>
-        </div>
-        <div class="dialog-actions">
-          <button type="button" id="cancel-account" class="text-button">Cancel</button>
-          <button type="submit" class="primary-btn">Save Account</button>
-        </div>
-      </form>
-    </dialog>
+  <dialog id="account-dialog">
+    <form id="account-form" method="dialog">
+      <h3>Add Account</h3>
+      <div class="form-group">
+        <label>Account Name</label>
+        <input type="text" id="acc-name" required>
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="acc-type" required>
+          <option value="asset">Asset (Checking, Savings)</option>
+          <option value="liability">Liability (Credit Card, Loan)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Current Balance</label>
+        <input type="number" id="acc-balance" step="0.01" required>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="cancel-account" class="text-button">Cancel</button>
+        <button type="submit" class="primary-btn">Save Account</button>
+      </div>
+    </form>
+  </dialog>
 
-    <dialog id="transfer-dialog">
-      <form id="transfer-form" method="dialog">
-        <h3>Transfer Funds</h3>
-        <div class="form-group">
-          <label>From Account</label>
-          <select id="transfer-from" required></select>
-        </div>
-        <div class="form-group">
-          <label>To Account</label>
-          <select id="transfer-to" required></select>
-        </div>
-        <div class="form-group">
-          <label>Amount to Transfer</label>
-          <input type="number" id="transfer-amount" step="0.01" placeholder="0.00" required>
-        </div>
-        <div class="dialog-actions">
-          <button type="button" id="cancel-transfer" class="text-button">Cancel</button>
-          <button type="submit" class="primary-btn">Transfer</button>
-        </div>
-      </form>
-    </dialog>
+  <dialog id="transfer-dialog">
+    <form id="transfer-form" method="dialog">
+      <h3>Transfer Funds</h3>
+      <div class="form-group">
+        <label>From Account</label>
+        <select id="transfer-from" required></select>
+      </div>
+      <div class="form-group">
+        <label>To Account</label>
+        <select id="transfer-to" required></select>
+      </div>
+      <div class="form-group">
+        <label>Amount to Transfer</label>
+        <input type="number" id="transfer-amount" step="0.01" placeholder="0.00" required>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="cancel-transfer" class="text-button">Cancel</button>
+        <button type="submit" class="primary-btn">Transfer</button>
+      </div>
+    </form>
+  </dialog>
 
-    <script type="module" src="/src/main.js"></script>
-  </body>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
 </html>

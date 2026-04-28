@@ -23,6 +23,7 @@
       <nav class="sidebar-nav">
         <button id="tab-dashboard" class="tab-btn active">Dashboard</button>
         <button id="tab-insights" class="tab-btn">Insights</button>
+        <button id="tab-goals" class="tab-btn">Savings Goals</button>
         <button id="tab-logs" class="tab-btn">Audit Logs</button>
       </nav>
     </aside>
@@ -33,7 +34,8 @@
         <div class="net-worth-header">
           <span>Net Worth: </span><strong id="global-net-worth">₱0.00</strong>
         </div>
-        <div class="month-selector">
+        <div class="month-selector" style="display:flex; gap: 1rem; align-items:center;">
+          <button id="theme-toggle" class="icon-btn" style="background:var(--color-surface); box-shadow:var(--shadow-soft); width: 40px; height: 40px; border-radius: var(--radius-sm); color: var(--color-text-main);" title="Toggle Theme"></button>
           <input type="month" id="month-picker" class="month-input">
         </div>
       </header>
@@ -71,15 +73,12 @@
                   <input type="number" id="amount" placeholder="0.00" step="0.01" required>
                 </div>
                 <div class="form-group">
-                  <label for="category">Category</label>
+                  <div style="display:flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem;">
+                    <label for="category" style="margin-bottom:0;">Category</label>
+                    <button type="button" id="manage-categories-btn" style="background:none; border:none; color:var(--color-accent); font-size:0.8rem; cursor:pointer; font-weight:500;">Manage Categories</button>
+                  </div>
                   <select id="category" required>
                     <option value="" disabled selected>Select category</option>
-                    <option value="housing">Housing</option>
-                    <option value="food">Food</option>
-                    <option value="utilities">Utilities</option>
-                    <option value="transport">Transport</option>
-                    <option value="entertainment">Entertainment</option>
-                    <option value="other">Other</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -107,6 +106,16 @@
                 <div class="form-group">
                   <label>Expected Amount</label>
                   <input type="number" id="rec-amount" placeholder="0.00" step="0.01" required>
+                </div>
+                <div style="display:flex; gap:1rem; margin-bottom: 1.25rem;">
+                  <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:var(--color-text-muted);">
+                    <input type="checkbox" id="rec-autopay" style="width:auto; padding:0; margin:0;">
+                    Auto-pay
+                  </label>
+                  <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:var(--color-text-muted);">
+                    Day:
+                    <input type="number" id="rec-day" min="1" max="31" value="1" style="width:60px; padding: 0.2rem 0.5rem;">
+                  </label>
                 </div>
                 <button type="submit" class="secondary-btn">Add Planned</button>
               </form>
@@ -138,7 +147,10 @@
           <!-- Col 3: Transactions -->
           <div class="grid-col transactions-col">
             <div class="card glass feed-card">
-              <h3>Recent Transactions</h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-bg); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+                <h3 style="border: none; padding: 0; margin: 0;">Recent Transactions</h3>
+                <input type="text" id="transaction-search" placeholder="Search..." style="padding: 0.4rem 0.8rem; font-size: 0.85rem; width: 140px;">
+              </div>
               <div class="transactions-list" id="transaction-list"></div>
             </div>
           </div>
@@ -158,10 +170,53 @@
               style="text-align: center; font-size: 1.25rem; font-family: var(--font-serif); margin-top: 1rem; color: var(--color-accent);">
             </p>
           </div>
-          <div class="card blank">
-            <h3>Top Categories Breakdown</h3>
-            <div class="chart-container">
-              <canvas id="expense-chart"></canvas>
+          
+          <div class="dashboard-grid-horizontal" style="grid-template-columns: 1fr 1fr;">
+            <div class="card blank">
+              <h3>Top Categories Breakdown</h3>
+              <div class="chart-container">
+                <canvas id="expense-chart"></canvas>
+              </div>
+            </div>
+            <div class="card blank">
+              <h3>Category Budgets</h3>
+              <div id="budget-progress-list" style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
+                <!-- Budget bars here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Goals View -->
+      <main class="view" id="view-goals" style="display: none;">
+        <div class="dashboard-grid-horizontal">
+          <div class="grid-col actions-col">
+            <div class="card glass">
+              <h3>Create Goal</h3>
+              <form id="goal-form">
+                <div class="form-group">
+                  <label>Goal Name</label>
+                  <input type="text" id="goal-name" placeholder="e.g. New Laptop" required>
+                </div>
+                <div class="form-group">
+                  <label>Target Amount</label>
+                  <input type="number" id="goal-target" placeholder="0.00" step="0.01" required>
+                </div>
+                <div class="form-group">
+                  <label>Target Date (optional)</label>
+                  <input type="date" id="goal-deadline">
+                </div>
+                <button type="submit" class="primary-btn">Save Goal</button>
+              </form>
+            </div>
+          </div>
+          <div class="grid-col ledgers-col" style="grid-column: span 2;">
+            <div class="card blank">
+              <h3>Your Savings Goals</h3>
+              <div id="goals-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                <!-- Goals here -->
+              </div>
             </div>
           </div>
         </div>
@@ -258,6 +313,21 @@
         <button type="submit" class="primary-btn">Transfer</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="category-dialog">
+    <div style="display:flex; justify-content: space-between; align-items:center; border-bottom: 1px solid var(--color-bg); padding-bottom: 1rem; margin-bottom: 1rem;">
+      <h3 style="border: none; padding: 0; margin: 0;">Manage Categories</h3>
+      <button type="button" id="close-category" class="text-button" style="position:static;">Close</button>
+    </div>
+    <form id="category-form" style="display:flex; gap:0.5rem; margin-bottom: 1.5rem;">
+      <input type="text" id="new-category-name" placeholder="New Category" required style="flex-grow:1;">
+      <input type="number" id="new-category-budget" placeholder="Budget (0)" step="0.01" style="width:100px;">
+      <button type="submit" class="primary-btn" style="width:auto;">Add</button>
+    </form>
+    <div id="category-list" class="mini-list" style="max-height:200px; overflow-y:auto;">
+      <!-- Categories rendered here -->
+    </div>
   </dialog>
 
   <script type="module" src="/src/main.js"></script>

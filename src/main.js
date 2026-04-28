@@ -1,14 +1,43 @@
 import './style.css';
-import { state, subscribe, fetchState, addIncome, addRecurringExpense, addTransaction, addAccount, submitTransfer, setDate, setTab, setLogsLimit } from './state.js';
+import { state, subscribe, fetchState, addIncome, addRecurringExpense, addTransaction, addAccount, submitTransfer, setDate, setTab, setLogsLimit, setSearchQuery, addCategory, addGoal } from './state.js';
 import { renderDashboard } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   subscribe(renderDashboard);
   await fetchState();
 
+  // Theme Setup
+  const themeToggle = document.getElementById('theme-toggle');
+  
+  const iconSun = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+  const iconMoon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+
+  if (themeToggle) {
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      themeToggle.innerHTML = iconSun;
+    } else {
+      themeToggle.innerHTML = iconMoon;
+    }
+
+    themeToggle.onclick = () => {
+      if (document.documentElement.getAttribute('data-theme') === 'dark') {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        themeToggle.innerHTML = iconMoon;
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        themeToggle.innerHTML = iconSun;
+      }
+    };
+  }
+
   // Navigation
   document.getElementById('tab-dashboard').onclick = () => setTab('dashboard');
   document.getElementById('tab-insights').onclick = () => setTab('insights');
+  const tabGoals = document.getElementById('tab-goals');
+  if (tabGoals) tabGoals.onclick = () => setTab('goals');
   const tabLogs = document.getElementById('tab-logs');
   if (tabLogs) tabLogs.onclick = () => setTab('logs');
 
@@ -26,6 +55,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const [year, month] = e.target.value.split('-');
     setDate(year, parseInt(month) - 1);
   });
+
+  // Search
+  const searchInput = document.getElementById('transaction-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => setSearchQuery(e.target.value));
+  }
 
   // Transfer Modal
   const transferDialog = document.getElementById('transfer-dialog');
@@ -87,6 +122,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  // Category Modal
+  const categoryDialog = document.getElementById('category-dialog');
+  const manageCategoriesBtn = document.getElementById('manage-categories-btn');
+  if (manageCategoriesBtn && categoryDialog) {
+    manageCategoriesBtn.onclick = () => categoryDialog.showModal();
+    document.getElementById('close-category').onclick = () => categoryDialog.close();
+    
+    document.getElementById('category-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('new-category-name').value;
+      const budgetInput = document.getElementById('new-category-budget');
+      const budget = budgetInput ? parseFloat(budgetInput.value) : 0;
+      
+      if (name) {
+        await addCategory(name, isNaN(budget) ? 0 : budget);
+        e.target.reset();
+      }
+    };
+  }
+
+  // Goal Form
+  const goalForm = document.getElementById('goal-form');
+  if (goalForm) {
+    goalForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('goal-name').value;
+      const target = parseFloat(document.getElementById('goal-target').value);
+      const deadline = document.getElementById('goal-deadline').value;
+      
+      if (!isNaN(target) && name) {
+        await addGoal({ name, target_amount: target, deadline: deadline || null });
+        e.target.reset();
+      }
+    };
+  }
+
   // Dash Forms
   document.getElementById('expense-form').onsubmit = async (e) => {
     e.preventDefault();
@@ -105,8 +176,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     const name = document.getElementById('rec-name').value;
     const expected = parseFloat(document.getElementById('rec-amount').value);
+    
+    const autoPayEl = document.getElementById('rec-autopay');
+    const dayEl = document.getElementById('rec-day');
+    const auto_pay = autoPayEl ? autoPayEl.checked : false;
+    const day_of_month = dayEl ? parseInt(dayEl.value) : 1;
+
     if (!isNaN(expected) && name) {
-      await addRecurringExpense({ name, expected_amount: expected, category: 'planned' });
+      await addRecurringExpense({ name, expected_amount: expected, category: 'planned', auto_pay, day_of_month });
       e.target.reset();
     }
   };

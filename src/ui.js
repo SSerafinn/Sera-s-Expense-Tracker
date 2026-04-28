@@ -1,4 +1,4 @@
-import { state, deleteIncome, deleteRecurringExpense, deleteTransaction, deleteAccount, setTab, setLogsLimit } from './state.js';
+import { state, deleteIncome, deleteRecurringExpense, deleteTransaction, deleteAccount, setTab, setLogsLimit, deleteCategory, deleteGoal, contributeToGoal } from './state.js';
 import { updateChart, updateInsightsChart } from './chart.js';
 
 const formatter = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
@@ -7,17 +7,22 @@ export function renderDashboard() {
   // Tabs View Switcher
   const viewDash = document.getElementById('view-dashboard');
   const viewInsights = document.getElementById('view-insights');
+  const viewGoals = document.getElementById('view-goals');
   const viewLogs = document.getElementById('view-logs');
+  
   const tabDash = document.getElementById('tab-dashboard');
   const tabInsights = document.getElementById('tab-insights');
+  const tabGoals = document.getElementById('tab-goals');
   const tabLogs = document.getElementById('tab-logs');
   
   viewDash.style.display = state.activeTab === 'dashboard' ? 'block' : 'none';
   viewInsights.style.display = state.activeTab === 'insights' ? 'block' : 'none';
+  if (viewGoals) viewGoals.style.display = state.activeTab === 'goals' ? 'block' : 'none';
   viewLogs.style.display = state.activeTab === 'logs' ? 'block' : 'none';
 
   tabDash.classList.toggle('active', state.activeTab === 'dashboard');
   tabInsights.classList.toggle('active', state.activeTab === 'insights');
+  if (tabGoals) tabGoals.classList.toggle('active', state.activeTab === 'goals');
   if (tabLogs) tabLogs.classList.toggle('active', state.activeTab === 'logs');
 
   // Calculate sums
@@ -49,7 +54,10 @@ export function renderDashboard() {
   renderMiniLists();
   renderTransactions();
   updateSelectOptions();
+  renderCategories();
   renderLogs();
+  renderBudgetProgress();
+  renderGoals();
   
   // Charts
   updateChart(state.transactions);
@@ -91,6 +99,38 @@ function updateSelectOptions() {
       sel.value = currentVal;
     }
   });
+}
+
+export function renderCategories() {
+  const catSelect = document.getElementById('category');
+  if (catSelect) {
+    const currentVal = catSelect.value;
+    catSelect.innerHTML = '<option value="" disabled selected>Select category</option>';
+    state.categories.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.name;
+      opt.textContent = c.name;
+      catSelect.appendChild(opt);
+    });
+    if (Array.from(catSelect.options).some(o => o.value == currentVal)) {
+      catSelect.value = currentVal;
+    }
+  }
+
+  const listEl = document.getElementById('category-list');
+  if (listEl) {
+    listEl.innerHTML = '';
+    state.categories.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'mini-item';
+      div.innerHTML = `<span>${c.name} ${c.monthly_budget > 0 ? `<small style="color:var(--color-text-muted);">(${formatter.format(c.monthly_budget)})</small>` : ''}</span>
+        <button class="mini-item-delete" data-id="${c.id}">×</button>`;
+      listEl.appendChild(div);
+    });
+    listEl.querySelectorAll('.mini-item-delete').forEach(b => {
+      b.onclick = (e) => deleteCategory(e.target.dataset.id);
+    });
+  }
 }
 
 function renderLogs() {
@@ -166,11 +206,22 @@ function renderMiniLists() {
 function renderTransactions() {
   const listEl = document.getElementById('transaction-list');
   listEl.innerHTML = '';
-  if (state.transactions.length === 0) {
-    listEl.innerHTML = '<p style="color: var(--color-text-muted);">No transactions.</p>';
+  
+  let filtered = state.transactions;
+  if (state.searchQuery) {
+    const q = state.searchQuery.toLowerCase();
+    filtered = filtered.filter(t => 
+      (t.description && t.description.toLowerCase().includes(q)) ||
+      (t.category && t.category.toLowerCase().includes(q)) ||
+      (t.amount.toString().includes(q))
+    );
+  }
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<p style="color: var(--color-text-muted);">No transactions found.</p>';
     return;
   }
-  const sorted = [...state.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
   sorted.forEach(exp => {
     const item = document.createElement('div');
     item.className = 'transaction-item';
@@ -198,4 +249,92 @@ function renderTransactions() {
   });
 
   listEl.querySelectorAll('.transaction-del').forEach(b => b.onclick = (e) => deleteTransaction(e.target.dataset.id));
+}
+
+function renderBudgetProgress() {
+  const container = document.getElementById('budget-progress-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const categoriesWithBudget = state.categories.filter(c => c.monthly_budget > 0);
+  if (categoriesWithBudget.length === 0) {
+    container.innerHTML = '<p style="color:var(--color-text-muted);">No budgets set.</p>';
+    return;
+  }
+
+  const spentPerCat = {};
+  state.transactions.forEach(t => {
+    spentPerCat[t.category] = (spentPerCat[t.category] || 0) + t.amount;
+  });
+
+  categoriesWithBudget.forEach(c => {
+    const spent = spentPerCat[c.name] || 0;
+    const percent = Math.min(100, (spent / c.monthly_budget) * 100);
+    const color = percent >= 100 ? 'var(--color-danger)' : 'var(--color-accent)';
+
+    const html = `
+      <div style="display:flex; flex-direction:column; gap:0.25rem;">
+        <div style="display:flex; justify-content:space-between; font-size:0.875rem;">
+          <span style="font-weight:500;">${c.name}</span>
+          <span style="color:var(--color-text-muted);">${formatter.format(spent)} / ${formatter.format(c.monthly_budget)}</span>
+        </div>
+        <div style="background:var(--color-bg); height:8px; border-radius:4px; overflow:hidden;">
+          <div style="background:${color}; height:100%; width:${percent}%;"></div>
+        </div>
+      </div>
+    `;
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+}
+
+export function renderGoals() {
+  const listEl = document.getElementById('goals-list');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  
+  if (!state.goals || state.goals.length === 0) {
+    listEl.innerHTML = '<p style="color: var(--color-text-muted); grid-column: span 2;">No savings goals yet. Create one!</p>';
+    return;
+  }
+
+  state.goals.forEach(goal => {
+    const percent = Math.min(100, (goal.current_amount / goal.target_amount) * 100);
+    const div = document.createElement('div');
+    div.className = 'card glass';
+    div.style.padding = '1.25rem';
+    
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+        <h4 style="margin:0; font-size:1.1rem; border:none; padding:0;">${goal.name}</h4>
+        <button class="text-button goal-del-btn" data-id="${goal.id}" style="position:static; padding:0; color:var(--color-danger);">Delete</button>
+      </div>
+      <div style="color:var(--color-text-muted); font-size:0.85rem; margin-bottom:1rem;">
+        ${formatter.format(goal.current_amount)} of ${formatter.format(goal.target_amount)}
+      </div>
+      <div style="background:var(--color-bg); height:12px; border-radius:6px; overflow:hidden; margin-bottom:1rem;">
+        <div style="background:var(--color-accent); height:100%; width:${percent}%; transition:width 0.5s;"></div>
+      </div>
+      <div style="display:flex; gap:0.5rem;">
+        <input type="number" id="contribute-input-${goal.id}" placeholder="Amount" style="width:80px; padding:0.4rem; font-size:0.85rem;">
+        <button class="primary-btn contribute-btn" data-id="${goal.id}" style="padding:0.4rem 0.8rem; font-size:0.85rem;">Add Funds</button>
+      </div>
+    `;
+    listEl.appendChild(div);
+  });
+
+  listEl.querySelectorAll('.goal-del-btn').forEach(b => {
+    b.onclick = (e) => deleteGoal(e.target.dataset.id);
+  });
+  listEl.querySelectorAll('.contribute-btn').forEach(b => {
+    b.onclick = (e) => {
+      const id = e.target.dataset.id;
+      const input = document.getElementById(`contribute-input-${id}`);
+      const amt = parseFloat(input.value);
+      if (!isNaN(amt) && amt > 0) {
+        contributeToGoal(id, amt);
+      }
+    };
+  });
 }

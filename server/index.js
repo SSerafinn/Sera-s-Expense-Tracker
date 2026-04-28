@@ -127,11 +127,13 @@ app.get('/api/recurring', (req, res) => {
   });
 });
 app.post('/api/recurring', (req, res) => {
-  const { name, expected_amount, category } = req.body;
-  db.run(`INSERT INTO recurring_expenses (name, expected_amount, category) VALUES (?, ?, ?)`,
-    [name, expected_amount, category], function(err) {
+  const { name, expected_amount, category, auto_pay, day_of_month } = req.body;
+  const auto = auto_pay ? 1 : 0;
+  const day = day_of_month || 1;
+  db.run(`INSERT INTO recurring_expenses (name, expected_amount, category, auto_pay, day_of_month) VALUES (?, ?, ?, ?, ?)`,
+    [name, expected_amount, category, auto, day], function(err) {
     logAction('ADD_PLANNED', `Added planned expense '${name}' for ₱${expected_amount}`);
-    res.json({ id: this.lastID, name, expected_amount, category });
+    res.json({ id: this.lastID, name, expected_amount, category, auto_pay: auto, day_of_month: day });
   });
 });
 app.delete('/api/recurring/:id', (req, res) => {
@@ -188,6 +190,104 @@ app.delete('/api/transactions/:id', (req, res) => {
     res.json({ deleted: true });
   });
 });
+
+// Categories
+app.get('/api/categories', (req, res) => {
+  db.all(`SELECT * FROM categories ORDER BY name ASC`, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.post('/api/categories', (req, res) => {
+  const { name, monthly_budget } = req.body;
+  if (!name) return res.status(400).json({ error: "Missing name" });
+  const budget = monthly_budget || 0;
+  db.run(`INSERT INTO categories (name, monthly_budget) VALUES (?, ?)`, [name, budget], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    logAction('ADD_CATEGORY', `Added custom category '${name}' with budget ₱${budget}`);
+    res.json({ id: this.lastID, name, monthly_budget: budget });
+  });
+});
+
+app.delete('/api/categories/:id', (req, res) => {
+  db.run(`DELETE FROM categories WHERE id = ?`, [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    logAction('DELETE_CATEGORY', `Deleted category ID: ${req.params.id}`);
+    res.json({ deleted: true });
+  });
+});
+
+app.put('/api/categories/:id', (req, res) => {
+  const { monthly_budget } = req.body;
+  db.run(`UPDATE categories SET monthly_budget = ? WHERE id = ?`, [monthly_budget, req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ updated: true });
+  });
+});
+
+// Goals
+app.get('/api/goals', (req, res) => {
+  db.all(`SELECT * FROM goals`, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.post('/api/goals', (req, res) => {
+  const { name, target_amount, deadline } = req.body;
+  db.run(`INSERT INTO goals (name, target_amount, deadline) VALUES (?, ?, ?)`, [name, target_amount, deadline], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    logAction('ADD_GOAL', `Added savings goal '${name}' for ₱${target_amount}`);
+    res.json({ id: this.lastID, name, target_amount, current_amount: 0, deadline });
+  });
+});
+
+app.post('/api/goals/:id/contribute', (req, res) => {
+  const { amount } = req.body;
+  db.run(`UPDATE goals SET current_amount = current_amount + ? WHERE id = ?`, [amount, req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    logAction('CONTRIBUTE_GOAL', `Contributed ₱${amount} to goal ID: ${req.params.id}`);
+    res.json({ success: true });
+  });
+});
+
+app.delete('/api/goals/:id', (req, res) => {
+  db.run(`DELETE FROM goals WHERE id = ?`, [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    logAction('DELETE_GOAL', `Deleted goal ID: ${req.params.id}`);
+    res.json({ deleted: true });
+  });
+});
+
+// Automation Worker
+function processAutoPayments() {
+  const today = new Date();
+  const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const isoDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 0).toISOString();
+  const currentDay = today.getDate();
+
+  db.all(`SELECT * FROM recurring_expenses WHERE auto_pay = 1 AND day_of_month <= ? AND last_processed != ?`, [currentDay, currentMonthStr], (err, rows) => {
+    if (err || !rows) return;
+    rows.forEach(exp => {
+      db.serialize(() => {
+        db.run(`BEGIN TRANSACTION`);
+        db.run(`INSERT INTO transactions (amount, category, description, date, account_id) VALUES (?, ?, ?, ?, ?)`,
+          [exp.expected_amount, exp.category, `Auto-pay: ${exp.name}`, isoDate, null], function(err) {
+          if (err) { db.run(`ROLLBACK`); return; }
+          db.run(`UPDATE recurring_expenses SET last_processed = ? WHERE id = ?`, [currentMonthStr, exp.id], (err) => {
+            if (err) { db.run(`ROLLBACK`); return; }
+            db.run(`COMMIT`);
+            logAction('AUTO_PAY', `Auto-paid ₱${exp.expected_amount} for '${exp.name}'`);
+          });
+        });
+      });
+    });
+  });
+}
+
+processAutoPayments();
+setInterval(processAutoPayments, 60 * 60 * 1000);
 
 const PORT = 3000;
 app.listen(PORT, () => {

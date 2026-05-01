@@ -14,7 +14,28 @@
 </head>
 
 <body>
-  <div class="admin-layout">
+  <div id="auth-container" class="auth-layout" style="display: none; height: 100vh; align-items: center; justify-content: center;">
+    <div class="card glass" style="width: 100%; max-width: 400px; padding: 2rem;">
+      <h2 style="text-align: center; margin-bottom: 1.5rem;" id="auth-title">Login</h2>
+      <form id="auth-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="auth-username" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="auth-password" required>
+        </div>
+        <div id="auth-error" style="color: var(--color-danger); margin-bottom: 1rem; font-size: 0.85rem; text-align: center;"></div>
+        <button type="submit" class="primary-btn" style="width: 100%;">Submit</button>
+      </form>
+      <p style="text-align: center; margin-top: 1rem; font-size: 0.9rem;">
+        <a href="#" id="auth-toggle-link" style="color: var(--color-accent); text-decoration: none;">Need an account? Register</a>
+      </p>
+    </div>
+  </div>
+
+  <div id="app-container" class="admin-layout" style="display: none;">
     <!-- Left Sidebar -->
     <aside class="sidebar">
       <div class="logo">
@@ -35,6 +56,7 @@
           <span>Net Worth: </span><strong id="global-net-worth">₱0.00</strong>
         </div>
         <div class="month-selector" style="display:flex; gap: 1rem; align-items:center;">
+          <button id="logout-btn" class="text-button" style="color: var(--color-danger); font-weight: 500;">Logout</button>
           <button id="theme-toggle" class="icon-btn" style="background:var(--color-surface); box-shadow:var(--shadow-soft); width: 40px; height: 40px; border-radius: var(--radius-sm); color: var(--color-text-main);" title="Toggle Theme"></button>
           <input type="month" id="month-picker" class="month-input">
         </div>
@@ -241,6 +263,7 @@
         </div>
       </main>
     </div>
+  </div>
   </div>
 
   <!-- Modals -->

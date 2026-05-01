@@ -12,37 +12,88 @@ export const state = {
   searchQuery: ''
 };
 
+export let token = localStorage.getItem('token') || null;
+
+export function isAuthenticated() {
+  return token !== null;
+}
+
+export function logout() {
+  token = null;
+  localStorage.removeItem('token');
+  window.location.reload();
+}
+
+export async function login(username, password) {
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  if(res.ok) {
+    const data = await res.json();
+    token = data.token;
+    localStorage.setItem('token', token);
+    return { success: true };
+  }
+  const err = await res.json();
+  return { success: false, error: err.error || "Login failed" };
+}
+
+export async function register(username, password) {
+  const res = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  if(res.ok) return { success: true };
+  const err = await res.json();
+  return { success: false, error: err.error || "Registration failed" };
+}
+
+async function authFetch(url, options = {}) {
+  if (!options.headers) options.headers = {};
+  if (token) options.headers['Authorization'] = `Bearer ${token}`;
+  
+  const res = await fetch(url, options);
+  if (res.status === 401 || res.status === 403) {
+    logout();
+  }
+  return res;
+}
+
 const listeners = [];
 export function subscribe(listener) { listeners.push(listener); }
 function notify() { listeners.forEach(l => l()); }
 
 export async function fetchState() {
+  if (!isAuthenticated()) return;
   const month = state.currentDate.getMonth() + 1;
   const year = state.currentDate.getFullYear();
 
   const [incomesRes, recurringRes, transactionsRes, accountsRes, categoriesRes, logsRes, goalsRes] = await Promise.all([
-    fetch(`/api/incomes?month=${month}&year=${year}`),
-    fetch('/api/recurring'),
-    fetch(`/api/transactions?month=${month}&year=${year}`),
-    fetch('/api/accounts'),
-    fetch('/api/categories'),
-    fetch(`/api/logs?limit=${state.logsLimit}`),
-    fetch('/api/goals')
+    authFetch(`/api/incomes?month=${month}&year=${year}`),
+    authFetch('/api/recurring'),
+    authFetch(`/api/transactions?month=${month}&year=${year}`),
+    authFetch('/api/accounts'),
+    authFetch('/api/categories'),
+    authFetch(`/api/logs?limit=${state.logsLimit}`),
+    authFetch('/api/goals')
   ]);
 
-  if (incomesRes.ok) state.incomes = await incomesRes.json();
-  if (recurringRes.ok) state.recurringExpenses = await recurringRes.json();
-  if (transactionsRes.ok) state.transactions = await transactionsRes.json();
-  if (accountsRes.ok) state.accounts = await accountsRes.json();
-  if (categoriesRes.ok) state.categories = await categoriesRes.json();
-  if (logsRes.ok) state.logs = await logsRes.json();
-  if (goalsRes.ok) state.goals = await goalsRes.json();
+  if (incomesRes && incomesRes.ok) state.incomes = await incomesRes.json();
+  if (recurringRes && recurringRes.ok) state.recurringExpenses = await recurringRes.json();
+  if (transactionsRes && transactionsRes.ok) state.transactions = await transactionsRes.json();
+  if (accountsRes && accountsRes.ok) state.accounts = await accountsRes.json();
+  if (categoriesRes && categoriesRes.ok) state.categories = await categoriesRes.json();
+  if (logsRes && logsRes.ok) state.logs = await logsRes.json();
+  if (goalsRes && goalsRes.ok) state.goals = await goalsRes.json();
   
   notify();
 }
 
 export async function addAccount(accountData) {
-  await fetch('/api/accounts', {
+  await authFetch('/api/accounts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(accountData)
@@ -51,7 +102,7 @@ export async function addAccount(accountData) {
 }
 
 export async function submitTransfer(transferData) {
-  await fetch('/api/transfer', {
+  await authFetch('/api/transfer', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(transferData)
@@ -62,7 +113,7 @@ export async function submitTransfer(transferData) {
 export async function addIncome(incomeData) {
   const month = state.currentDate.getMonth() + 1;
   const year = state.currentDate.getFullYear();
-  await fetch('/api/incomes', {
+  await authFetch('/api/incomes', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...incomeData, month, year })
@@ -71,7 +122,7 @@ export async function addIncome(incomeData) {
 }
 
 export async function addRecurringExpense(expenseData) {
-  await fetch('/api/recurring', {
+  await authFetch('/api/recurring', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(expenseData)
@@ -82,7 +133,7 @@ export async function addRecurringExpense(expenseData) {
 export async function addTransaction(transactionData) {
   const date = state.currentDate;
   const isoDate = new Date(date.getFullYear(), date.getMonth(), new Date().getDate(), new Date().getHours(), new Date().getMinutes()).toISOString();
-  await fetch('/api/transactions', {
+  await authFetch('/api/transactions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...transactionData, date: isoDate })
@@ -91,27 +142,27 @@ export async function addTransaction(transactionData) {
 }
 
 export async function deleteTransaction(id) {
-  await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+  await authFetch(`/api/transactions/${id}`, { method: 'DELETE' });
   await fetchState();
 }
 
 export async function deleteIncome(id) {
-  await fetch(`/api/incomes/${id}`, { method: 'DELETE' });
+  await authFetch(`/api/incomes/${id}`, { method: 'DELETE' });
   await fetchState();
 }
 
 export async function deleteRecurringExpense(id) {
-  await fetch(`/api/recurring/${id}`, { method: 'DELETE' });
+  await authFetch(`/api/recurring/${id}`, { method: 'DELETE' });
   await fetchState();
 }
 
 export async function deleteAccount(id) {
-  await fetch(`/api/accounts/${id}`, { method: 'DELETE' });
+  await authFetch(`/api/accounts/${id}`, { method: 'DELETE' });
   await fetchState();
 }
 
 export async function addCategory(name, monthly_budget = 0) {
-  await fetch('/api/categories', {
+  await authFetch('/api/categories', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, monthly_budget })
@@ -120,12 +171,12 @@ export async function addCategory(name, monthly_budget = 0) {
 }
 
 export async function deleteCategory(id) {
-  await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+  await authFetch(`/api/categories/${id}`, { method: 'DELETE' });
   await fetchState();
 }
 
 export async function addGoal(goalData) {
-  await fetch('/api/goals', {
+  await authFetch('/api/goals', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(goalData)
@@ -134,7 +185,7 @@ export async function addGoal(goalData) {
 }
 
 export async function contributeToGoal(id, amount) {
-  await fetch(`/api/goals/${id}/contribute`, {
+  await authFetch(`/api/goals/${id}/contribute`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ amount })
@@ -143,12 +194,12 @@ export async function contributeToGoal(id, amount) {
 }
 
 export async function deleteGoal(id) {
-  await fetch(`/api/goals/${id}`, { method: 'DELETE' });
+  await authFetch(`/api/goals/${id}`, { method: 'DELETE' });
   await fetchState();
 }
 
 export async function updateCategoryBudget(id, monthly_budget) {
-  await fetch(`/api/categories/${id}`, {
+  await authFetch(`/api/categories/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ monthly_budget })

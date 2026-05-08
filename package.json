@@ -13,7 +13,11 @@
     "vite": "^8.0.9"
   },
   "dependencies": {
+<<<<<<< HEAD
     "bcryptjs": "^3.0.3",
+=======
+    "bcrypt": "^6.0.0",
+>>>>>>> e9c8a1ca6dcd9c6629e9682add6b75d3b5518714
     "chart.js": "^4.5.1",
     "concurrently": "^9.2.1",
     "cookie-parser": "^1.4.7",

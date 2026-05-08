@@ -1,10 +1,74 @@
 import './style.css';
-import { state, subscribe, fetchState, addIncome, addRecurringExpense, addTransaction, addAccount, submitTransfer, setDate, setTab, setLogsLimit, setSearchQuery, addCategory, addGoal } from './state.js';
+import { state, subscribe, fetchState, addIncome, addRecurringExpense, addTransaction, addAccount, submitTransfer, setDate, setTab, setLogsLimit, setSearchQuery, addCategory, addGoal, isAuthenticated, login, register, logout } from './state.js';
 import { renderDashboard } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  subscribe(renderDashboard);
-  await fetchState();
+  const authContainer = document.getElementById('auth-container');
+  const appContainer = document.getElementById('app-container');
+
+  if (!isAuthenticated()) {
+    authContainer.style.display = 'flex';
+    appContainer.style.display = 'none';
+  } else {
+    authContainer.style.display = 'none';
+    appContainer.style.display = 'flex';
+    subscribe(renderDashboard);
+    await fetchState();
+  }
+
+  // Auth Logic
+  let isLoginMode = true;
+  const authForm = document.getElementById('auth-form');
+  const authTitle = document.getElementById('auth-title');
+  const authToggleLink = document.getElementById('auth-toggle-link');
+  const authError = document.getElementById('auth-error');
+
+  if (authToggleLink) {
+    authToggleLink.onclick = (e) => {
+      e.preventDefault();
+      isLoginMode = !isLoginMode;
+      authTitle.textContent = isLoginMode ? 'Login' : 'Register';
+      authToggleLink.textContent = isLoginMode ? 'Need an account? Register' : 'Already have an account? Login';
+      authError.textContent = '';
+    };
+  }
+
+  if (authForm) {
+    authForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('auth-username').value;
+      const password = document.getElementById('auth-password').value;
+      authError.textContent = '';
+
+      if (isLoginMode) {
+        const res = await login(username, password);
+        if (res.success) {
+          window.location.reload();
+        } else {
+          authError.style.color = 'var(--color-danger)';
+          authError.textContent = res.error;
+        }
+      } else {
+        const res = await register(username, password);
+        if (res.success) {
+          authError.style.color = 'var(--color-accent)';
+          authError.textContent = 'Registration successful! You can now log in.';
+          isLoginMode = true;
+          authTitle.textContent = 'Login';
+          authToggleLink.textContent = 'Need an account? Register';
+          authForm.reset();
+        } else {
+          authError.style.color = 'var(--color-danger)';
+          authError.textContent = res.error;
+        }
+      }
+    };
+  }
+
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.onclick = logout;
+  }
 
   // Theme Setup
   const themeToggle = document.getElementById('theme-toggle');

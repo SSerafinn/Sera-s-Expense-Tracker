@@ -39,13 +39,18 @@
     <!-- Left Sidebar -->
     <aside class="sidebar">
       <div class="logo">
-        <h1>Seraf's Personal Tracker.</h1>
+        <h1 id="sidebar-title">Seraf's Personal Tracker.</h1>
       </div>
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" style="display:flex; flex-direction:column; height:calc(100% - 60px);">
         <button id="tab-dashboard" class="tab-btn active">Dashboard</button>
         <button id="tab-insights" class="tab-btn">Insights</button>
         <button id="tab-goals" class="tab-btn">Savings Goals</button>
         <button id="tab-logs" class="tab-btn">Audit Logs</button>
+        <div style="flex-grow: 1;"></div>
+        <button id="logout-btn" class="tab-btn" style="color: var(--color-danger); margin-top: auto;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+          Logout
+        </button>
       </nav>
     </aside>
 
@@ -56,7 +61,6 @@
           <span>Net Worth: </span><strong id="global-net-worth">₱0.00</strong>
         </div>
         <div class="month-selector" style="display:flex; gap: 1rem; align-items:center;">
-          <button id="logout-btn" class="text-button" style="color: var(--color-danger); font-weight: 500;">Logout</button>
           <button id="theme-toggle" class="icon-btn" style="background:var(--color-surface); box-shadow:var(--shadow-soft); width: 40px; height: 40px; border-radius: var(--radius-sm); color: var(--color-text-main);" title="Toggle Theme"></button>
           <input type="month" id="month-picker" class="month-input">
         </div>

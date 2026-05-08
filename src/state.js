@@ -24,6 +24,16 @@ export function logout() {
   window.location.reload();
 }
 
+export function getUsername() {
+  if (!token) return 'Seraf';
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.username || 'Seraf';
+  } catch (e) {
+    return 'Seraf';
+  }
+}
+
 export async function login(username, password) {
   try {
     const res = await fetch('/api/login', {

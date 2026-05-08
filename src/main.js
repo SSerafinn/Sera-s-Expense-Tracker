@@ -1,5 +1,5 @@
 import './style.css';
-import { state, subscribe, fetchState, addIncome, addRecurringExpense, addTransaction, addAccount, submitTransfer, setDate, setTab, setLogsLimit, setSearchQuery, addCategory, addGoal, isAuthenticated, login, register, logout } from './state.js';
+import { state, subscribe, fetchState, addIncome, addRecurringExpense, addTransaction, addAccount, submitTransfer, setDate, setTab, setLogsLimit, setSearchQuery, addCategory, addGoal, isAuthenticated, login, register, logout, getUsername } from './state.js';
 import { renderDashboard } from './ui.js';
 import Swal from 'sweetalert2';
 
@@ -25,6 +25,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     authContainer.style.display = 'none';
     appContainer.style.display = 'flex';
+    
+    // Set dynamic username
+    const sidebarTitle = document.getElementById('sidebar-title');
+    if (sidebarTitle) sidebarTitle.textContent = `${getUsername()}'s Personal Tracker.`;
+    
     subscribe(renderDashboard);
     await fetchState();
   }

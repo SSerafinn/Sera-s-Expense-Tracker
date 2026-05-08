@@ -7,8 +7,8 @@
   --color-surface: #FFFFFF;
   --color-text-main: #1D1D1B;
   --color-text-muted: #6B6A68;
-  --color-accent: #37534D; 
-  --color-accent-light: #677E79;
+  --color-accent: #8782A6; 
+  --color-accent-light: #A7A3BF;
   --color-danger: #8C4040;
   --color-border: #E0DEDA;
   --color-input-bg: #FCFBFA;
@@ -28,8 +28,8 @@
   --color-surface: #1E1E1E;
   --color-text-main: #E0E0E0;
   --color-text-muted: #A0A0A0;
-  --color-accent: #659B8E; 
-  --color-accent-light: #8BBDB2;
+  --color-accent: #A7A3BF; 
+  --color-accent-light: #C6C3D8;
   --color-danger: #CF6679;
   --color-border: #333333;
   --color-input-bg: #2C2C2C;
@@ -187,7 +187,7 @@ h1, h2, h3, h4 {
   transition: var(--transition);
 }
 .stat-card.balance {
-  background: linear-gradient(135deg, var(--color-accent), #2A403A);
+  background: linear-gradient(135deg, var(--color-accent), #4F4B66);
   color: white;
   text-align: center;
 }

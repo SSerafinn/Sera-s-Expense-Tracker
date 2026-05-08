@@ -1,6 +1,19 @@
 import './style.css';
 import { state, subscribe, fetchState, addIncome, addRecurringExpense, addTransaction, addAccount, submitTransfer, setDate, setTab, setLogsLimit, setSearchQuery, addCategory, addGoal, isAuthenticated, login, register, logout } from './state.js';
 import { renderDashboard } from './ui.js';
+import Swal from 'sweetalert2';
+
+export const Toast = Swal.mixin({
+  toast: true,
+  position: 'top',
+  showConfirmButton: false,
+  timer: 4000,
+  customClass: {
+    popup: 'custom-swal-popup',
+    title: 'custom-swal-title',
+    icon: 'custom-swal-icon'
+  }
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
   const authContainer = document.getElementById('auth-container');
@@ -143,7 +156,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       if (!isNaN(amount) && from_account_id && to_account_id) {
         if (from_account_id === to_account_id) {
-          alert("Cannot transfer to the same account.");
+          Toast.fire({
+            icon: 'error',
+            title: 'Cannot transfer to the same account.'
+          });
           return;
         }
         await submitTransfer({ from_account_id, to_account_id, amount });
@@ -157,8 +173,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const incomeDialog = document.getElementById('income-dialog');
   const qaAddIncome = document.getElementById('qa-add-income');
   const addIncomeBtn = document.getElementById('add-income-btn');
-  if (addIncomeBtn) addIncomeBtn.onclick = () => incomeDialog.showModal();
-  if (qaAddIncome) qaAddIncome.onclick = () => incomeDialog.showModal();
+  const openIncomeModal = () => {
+    if (state.accounts.length === 0) {
+      Toast.fire({
+        icon: 'warning',
+        title: 'Please add an account before adding income.'
+      });
+      return;
+    }
+    incomeDialog.showModal();
+  };
+  if (addIncomeBtn) addIncomeBtn.onclick = openIncomeModal;
+  if (qaAddIncome) qaAddIncome.onclick = openIncomeModal;
   const cancelIncomeBtn = document.getElementById('cancel-income');
   if (cancelIncomeBtn) cancelIncomeBtn.onclick = () => incomeDialog.close();
 

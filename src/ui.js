@@ -160,41 +160,53 @@ function renderLogs() {
 function renderMiniLists() {
   const incomeList = document.getElementById('income-list');
   incomeList.innerHTML = '';
-  state.incomes.forEach(inc => {
-    const div = document.createElement('div');
-    div.className = 'mini-item';
-    div.innerHTML = `<span>${inc.source_name}</span>
-      <span>${formatter.format(inc.amount)} <button class="mini-item-delete" data-id="${inc.id}">×</button></span>`;
-    incomeList.appendChild(div);
-  });
+  if (state.incomes.length === 0) {
+    incomeList.innerHTML = '<p style="color:var(--color-text-muted); font-size:0.85rem; padding: 0.5rem 0;">No income sources found.</p>';
+  } else {
+    state.incomes.forEach(inc => {
+      const div = document.createElement('div');
+      div.className = 'mini-item';
+      div.innerHTML = `<span>${inc.source_name}</span>
+        <span>${formatter.format(inc.amount)} <button class="mini-item-delete" data-id="${inc.id}">×</button></span>`;
+      incomeList.appendChild(div);
+    });
+  }
 
   const recList = document.getElementById('recurring-list');
   recList.innerHTML = '';
-  state.recurringExpenses.forEach(rec => {
-    const div = document.createElement('div');
-    div.className = 'mini-item';
-    div.innerHTML = `<span>${rec.name}</span>
-      <span>${formatter.format(rec.expected_amount)} <button class="mini-item-delete" data-id="${rec.id}">×</button></span>`;
-    recList.appendChild(div);
-  });
+  if (state.recurringExpenses.length === 0) {
+    recList.innerHTML = '<p style="color:var(--color-text-muted); font-size:0.85rem; padding: 0.5rem 0;">No planned expenses set.</p>';
+  } else {
+    state.recurringExpenses.forEach(rec => {
+      const div = document.createElement('div');
+      div.className = 'mini-item';
+      div.innerHTML = `<span>${rec.name}</span>
+        <span>${formatter.format(rec.expected_amount)} <button class="mini-item-delete" data-id="${rec.id}">×</button></span>`;
+      recList.appendChild(div);
+    });
+  }
 
   const accList = document.getElementById('accounts-list');
   if(accList) {
     accList.innerHTML = '';
-    state.accounts.forEach(acc => {
-       const div = document.createElement('div');
-       div.className = 'mini-item';
-       const color = acc.type === 'asset' ? 'var(--color-accent)' : 'var(--color-danger)';
-       let label = acc.type === 'asset' ? 'Asset' : 'Liability';
-       div.innerHTML = `
-         <div style="display:flex; flex-direction:column;">
-           <span>${acc.name}</span>
-           <small style="font-size:0.75rem; color:var(--color-text-muted)">${label}</small>
-         </div>
-         <span><strong style="color:${color}">${formatter.format(acc.balance)}</strong> <button class="mini-item-delete" data-id="${acc.id}">×</button></span>
-       `;
-       accList.appendChild(div);
-    });
+    if (state.accounts.length === 0) {
+      accList.innerHTML = '<div style="padding: 1rem; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); text-align: center;"><p style="color:var(--color-text-muted); font-size:0.85rem;">No accounts yet. Click "Add Account" above.</p></div>';
+    } else {
+      state.accounts.forEach(acc => {
+         const div = document.createElement('div');
+         div.className = 'mini-item';
+         const color = acc.type === 'asset' ? 'var(--color-accent)' : 'var(--color-danger)';
+         let label = acc.type === 'asset' ? 'Asset' : 'Liability';
+         div.innerHTML = `
+           <div style="display:flex; flex-direction:column;">
+             <span>${acc.name}</span>
+             <small style="font-size:0.75rem; color:var(--color-text-muted)">${label}</small>
+           </div>
+           <span><strong style="color:${color}">${formatter.format(acc.balance)}</strong> <button class="mini-item-delete" data-id="${acc.id}">×</button></span>
+         `;
+         accList.appendChild(div);
+      });
+    }
   }
 
   // Attach handlers
@@ -218,7 +230,12 @@ function renderTransactions() {
   }
 
   if (filtered.length === 0) {
-    listEl.innerHTML = '<p style="color: var(--color-text-muted);">No transactions found.</p>';
+    listEl.innerHTML = `
+      <div style="padding: 2rem; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); text-align: center; margin-top: 1rem;">
+        <p style="color: var(--color-text-main); font-weight: 500; margin-bottom: 0.5rem;">No transactions found</p>
+        <p style="color: var(--color-text-muted); font-size: 0.85rem;">Start by adding an account, then track an expense!</p>
+      </div>
+    `;
     return;
   }
   const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));

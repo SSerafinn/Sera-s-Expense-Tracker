@@ -220,6 +220,42 @@ h1, h2, h3, h4 {
   align-items: stretch;
 }
 
+.dashboard-grid-main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.quick-actions-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.qa-btn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1.25rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-main);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.qa-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-accent);
+}
+
 .card {
   background: var(--color-surface);
   border-radius: var(--radius-lg);

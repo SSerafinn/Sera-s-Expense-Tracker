@@ -82,11 +82,20 @@
           </div>
         </section>
 
-        <!-- 3-Column Main Grid -->
-        <div class="dashboard-grid-horizontal">
+        <!-- Quick Actions Row -->
+        <section class="quick-actions-row">
+          <button id="qa-add-account" class="qa-btn">🏦 Add Account</button>
+          <button id="qa-add-income" class="qa-btn">💵 Add Income</button>
+          <button id="qa-transfer" class="qa-btn">⇄ Transfer Funds</button>
+          <button id="qa-manage-categories" class="qa-btn">🏷️ Categories</button>
+          <button id="qa-add-planned" class="qa-btn">📅 Add Planned</button>
+        </section>
 
-          <!-- Col 1: Forms -->
-          <div class="grid-col actions-col">
+        <!-- 2-Column Main Grid -->
+        <div class="dashboard-grid-main">
+
+          <!-- Main Column -->
+          <div class="grid-col main-col">
             <div class="card glass">
               <h3>Track Expense</h3>
               <form id="expense-form">
@@ -95,10 +104,7 @@
                   <input type="number" id="amount" placeholder="0.00" step="0.01" required>
                 </div>
                 <div class="form-group">
-                  <div style="display:flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem;">
-                    <label for="category" style="margin-bottom:0;">Category</label>
-                    <button type="button" id="manage-categories-btn" style="background:none; border:none; color:var(--color-accent); font-size:0.8rem; cursor:pointer; font-weight:500;">Manage Categories</button>
-                  </div>
+                  <label for="category">Category</label>
                   <select id="category" required>
                     <option value="" disabled selected>Select category</option>
                   </select>
@@ -117,41 +123,19 @@
               </form>
             </div>
 
-            <!-- Planned Expenses Form -->
-            <div class="card glass mt-1">
-              <h3>Planned Expenses</h3>
-              <form id="recurring-form">
-                <div class="form-group">
-                  <label>Bill Name</label>
-                  <input type="text" id="rec-name" placeholder="e.g. Rent" required>
-                </div>
-                <div class="form-group">
-                  <label>Expected Amount</label>
-                  <input type="number" id="rec-amount" placeholder="0.00" step="0.01" required>
-                </div>
-                <div style="display:flex; gap:1rem; margin-bottom: 1.25rem;">
-                  <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:var(--color-text-muted);">
-                    <input type="checkbox" id="rec-autopay" style="width:auto; padding:0; margin:0;">
-                    Auto-pay
-                  </label>
-                  <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:var(--color-text-muted);">
-                    Day:
-                    <input type="number" id="rec-day" min="1" max="31" value="1" style="width:60px; padding: 0.2rem 0.5rem;">
-                  </label>
-                </div>
-                <button type="submit" class="secondary-btn">Add Planned</button>
-              </form>
+            <div class="card glass mt-1 feed-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-bg); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+                <h3 style="border: none; padding: 0; margin: 0;">Recent Transactions</h3>
+                <input type="text" id="transaction-search" placeholder="Search..." style="padding: 0.4rem 0.8rem; font-size: 0.85rem; width: 140px;">
+              </div>
+              <div class="transactions-list" id="transaction-list"></div>
             </div>
           </div>
 
-          <!-- Col 2: Ledgers -->
-          <div class="grid-col ledgers-col">
+          <!-- Side Column -->
+          <div class="grid-col side-col">
             <div class="card blank">
-              <h3>Accounts Ledger
-                <button id="add-account-btn" class="icon-btn" title="Add Account">+</button>
-                <button id="transfer-btn" class="icon-btn" title="Transfer Funds"
-                  style="margin-right: 0.5rem; background: var(--color-accent-light); color: white;">⇄</button>
-              </h3>
+              <h3>Accounts Ledger</h3>
               <div id="accounts-list" class="mini-list"></div>
             </div>
 
@@ -161,19 +145,8 @@
             </div>
 
             <div class="card blank mt-1">
-              <h3>Planned List</h3>
+              <h3>Planned Expenses</h3>
               <div id="recurring-list" class="mini-list"></div>
-            </div>
-          </div>
-
-          <!-- Col 3: Transactions -->
-          <div class="grid-col transactions-col">
-            <div class="card glass feed-card">
-              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-bg); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
-                <h3 style="border: none; padding: 0; margin: 0;">Recent Transactions</h3>
-                <input type="text" id="transaction-search" placeholder="Search..." style="padding: 0.4rem 0.8rem; font-size: 0.85rem; width: 140px;">
-              </div>
-              <div class="transactions-list" id="transaction-list"></div>
             </div>
           </div>
 
@@ -343,14 +316,42 @@
       <h3 style="border: none; padding: 0; margin: 0;">Manage Categories</h3>
       <button type="button" id="close-category" class="text-button" style="position:static;">Close</button>
     </div>
-    <form id="category-form" style="display:flex; gap:0.5rem; margin-bottom: 1.5rem;">
-      <input type="text" id="new-category-name" placeholder="New Category" required style="flex-grow:1;">
-      <input type="number" id="new-category-budget" placeholder="Budget (0)" step="0.01" style="width:100px;">
-      <button type="submit" class="primary-btn" style="width:auto;">Add</button>
+    <form id="category-form" style="display:flex; flex-wrap: wrap; gap:0.5rem; margin-bottom: 1.5rem; align-items: center;">
+      <input type="text" id="new-category-name" placeholder="New Category" required style="flex:1; min-width: 140px;">
+      <input type="number" id="new-category-budget" placeholder="Budget (0)" step="0.01" style="width:90px;">
+      <button type="submit" class="primary-btn" style="width:auto; padding: 0.6rem 1rem;">Add</button>
     </form>
     <div id="category-list" class="mini-list" style="max-height:200px; overflow-y:auto;">
       <!-- Categories rendered here -->
     </div>
+  </dialog>
+
+  <dialog id="planned-dialog">
+    <form id="recurring-form" method="dialog">
+      <h3>Add Planned Expense</h3>
+      <div class="form-group">
+        <label>Bill Name</label>
+        <input type="text" id="rec-name" placeholder="e.g. Rent" required>
+      </div>
+      <div class="form-group">
+        <label>Expected Amount</label>
+        <input type="number" id="rec-amount" placeholder="0.00" step="0.01" required>
+      </div>
+      <div style="display:flex; gap:1rem; margin-bottom: 1.25rem;">
+        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:var(--color-text-muted);">
+          <input type="checkbox" id="rec-autopay" style="width:auto; padding:0; margin:0;">
+          Auto-pay
+        </label>
+        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; color:var(--color-text-muted);">
+          Day:
+          <input type="number" id="rec-day" min="1" max="31" value="1" style="width:60px; padding: 0.2rem 0.5rem;">
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="cancel-planned" class="text-button">Cancel</button>
+        <button type="submit" class="primary-btn">Save</button>
+      </div>
+    </form>
   </dialog>
 
   <script type="module" src="/src/main.js"></script>

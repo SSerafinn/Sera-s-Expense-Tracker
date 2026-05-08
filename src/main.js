@@ -129,8 +129,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Transfer Modal
   const transferDialog = document.getElementById('transfer-dialog');
   const transferBtn = document.getElementById('transfer-btn');
-  if (transferBtn && transferDialog) {
-    transferBtn.onclick = () => transferDialog.showModal();
+  const qaTransfer = document.getElementById('qa-transfer');
+  if (transferDialog) {
+    if (transferBtn) transferBtn.onclick = () => transferDialog.showModal();
+    if (qaTransfer) qaTransfer.onclick = () => transferDialog.showModal();
     document.getElementById('cancel-transfer').onclick = () => transferDialog.close();
     
     document.getElementById('transfer-form').onsubmit = async (e) => {
@@ -153,8 +155,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Income Modal
   const incomeDialog = document.getElementById('income-dialog');
-  document.getElementById('add-income-btn').onclick = () => incomeDialog.showModal();
-  document.getElementById('cancel-income').onclick = () => incomeDialog.close();
+  const qaAddIncome = document.getElementById('qa-add-income');
+  const addIncomeBtn = document.getElementById('add-income-btn');
+  if (addIncomeBtn) addIncomeBtn.onclick = () => incomeDialog.showModal();
+  if (qaAddIncome) qaAddIncome.onclick = () => incomeDialog.showModal();
+  const cancelIncomeBtn = document.getElementById('cancel-income');
+  if (cancelIncomeBtn) cancelIncomeBtn.onclick = () => incomeDialog.close();
 
   document.getElementById('income-form').onsubmit = async (e) => {
     e.preventDefault();
@@ -171,8 +177,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Account Modal
   const accountDialog = document.getElementById('account-dialog');
-  document.getElementById('add-account-btn').onclick = () => accountDialog.showModal();
-  document.getElementById('cancel-account').onclick = () => accountDialog.close();
+  const qaAddAccount = document.getElementById('qa-add-account');
+  const addAccountBtn = document.getElementById('add-account-btn');
+  if (addAccountBtn) addAccountBtn.onclick = () => accountDialog.showModal();
+  if (qaAddAccount) qaAddAccount.onclick = () => accountDialog.showModal();
+  const cancelAccountBtn = document.getElementById('cancel-account');
+  if (cancelAccountBtn) cancelAccountBtn.onclick = () => accountDialog.close();
 
   document.getElementById('account-form').onsubmit = async (e) => {
     e.preventDefault();
@@ -188,9 +198,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Category Modal
   const categoryDialog = document.getElementById('category-dialog');
-  const manageCategoriesBtn = document.getElementById('manage-categories-btn');
-  if (manageCategoriesBtn && categoryDialog) {
-    manageCategoriesBtn.onclick = () => categoryDialog.showModal();
+  const qaManageCats = document.getElementById('qa-manage-categories');
+  if (categoryDialog) {
+    if (qaManageCats) qaManageCats.onclick = () => categoryDialog.showModal();
     document.getElementById('close-category').onclick = () => categoryDialog.close();
     
     document.getElementById('category-form').onsubmit = async (e) => {
@@ -207,6 +217,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Goal Form
+  const plannedDialog = document.getElementById('planned-dialog');
+  const qaAddPlanned = document.getElementById('qa-add-planned');
+  if (plannedDialog) {
+    if (qaAddPlanned) qaAddPlanned.onclick = () => plannedDialog.showModal();
+    document.getElementById('cancel-planned').onclick = () => plannedDialog.close();
+  }
+
   const goalForm = document.getElementById('goal-form');
   if (goalForm) {
     goalForm.onsubmit = async (e) => {
@@ -249,6 +266,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!isNaN(expected) && name) {
       await addRecurringExpense({ name, expected_amount: expected, category: 'planned', auto_pay, day_of_month });
       e.target.reset();
+      const plannedDialog = document.getElementById('planned-dialog');
+      if (plannedDialog) plannedDialog.close();
     }
   };
 });

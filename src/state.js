@@ -25,30 +25,38 @@ export function logout() {
 }
 
 export async function login(username, password) {
-  const res = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
-  if(res.ok) {
-    const data = await res.json();
-    token = data.token;
-    localStorage.setItem('token', token);
-    return { success: true };
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    if(res.ok) {
+      const data = await res.json();
+      token = data.token;
+      localStorage.setItem('token', token);
+      return { success: true };
+    }
+    const err = await res.json();
+    return { success: false, error: err.error || "Login failed" };
+  } catch (e) {
+    return { success: false, error: "Network error or invalid response" };
   }
-  const err = await res.json();
-  return { success: false, error: err.error || "Login failed" };
 }
 
 export async function register(username, password) {
-  const res = await fetch('/api/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
-  if(res.ok) return { success: true };
-  const err = await res.json();
-  return { success: false, error: err.error || "Registration failed" };
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    if(res.ok) return { success: true };
+    const err = await res.json();
+    return { success: false, error: err.error || "Registration failed" };
+  } catch (e) {
+    return { success: false, error: "Network error or invalid response" };
+  }
 }
 
 async function authFetch(url, options = {}) {

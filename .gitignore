@@ -25,3 +25,5 @@ dist-ssr
 
 # Database
 *.sqlite
+.next
+.next/
